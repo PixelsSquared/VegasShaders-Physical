@@ -32,8 +32,8 @@ vec3 AtmSkyX(vec3 dir, vec3 sunDir, float camAlt, float haze, bool ms) {
     float phaseM = 3.0 / (8.0 * AtmPi) * ((1.0 - g2) * (1.0 + nu * nu)) / ((2.0 + g2) * pow(max(1.0 + g2 - 2.0 * AtmMieG * nu, 1e-4), 1.5));
 
     vec3 depth = vec3(0.0), sumR = vec3(0.0), sumM = vec3(0.0), sumMS = vec3(0.0);
-    for (int i = 0; i < 12; i++) {
-        float s0 = float(i) / 12.0, s1 = float(i + 1) / 12.0;
+    for (int i = 0; i < 24; i++) {   // TEST 2026-11-04 belt of Venus: 24 steps, as SkyView.fx.hlsl AtmSkyX
+        float s0 = float(i) / 24.0, s1 = float(i + 1) / 24.0;
         float t0 = tMax * s0 * s0, t1 = tMax * s1 * s1;
         float dt = t1 - t0;
         vec3 p = vec3(0.0, 0.0, r0) + dir * (0.5 * (t0 + t1));

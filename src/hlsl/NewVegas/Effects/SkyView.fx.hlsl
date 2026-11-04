@@ -170,8 +170,10 @@ float3 AtmSkyX(float3 dir, float3 sunDir, float camAlt, float haze, bool ms) {
     float phaseM = 3.0f / (8.0f * AtmPi) * ((1.0f - g2) * (1.0f + nu * nu)) / ((2.0f + g2) * pow(max(1.0f + g2 - 2.0f * AtmMieG * nu, 1e-4f), 1.5f));
 
     float3 depth = 0.0f, sumR = 0.0f, sumM = 0.0f, sumMS = 0.0f;
-    [loop] for (int i = 0; i < 12; i++) {
-        float s0 = i / 12.0f, s1 = (i + 1) / 12.0f;
+    // TEST 2026-11-04 belt of Venus: 24 steps (was 12). Across the earth's shadow edge in twilight 12 left 2-4% ripples in the
+    // sky's brightness by height; 24 is within 1% of a 96-step reference. Sky/PhysSkyModel.h and Compute/SkyTables.glsl match.
+    [loop] for (int i = 0; i < 24; i++) {
+        float s0 = i / 24.0f, s1 = (i + 1) / 24.0f;
         float t0 = tMax * s0 * s0, t1 = tMax * s1 * s1;
         float dt = t1 - t0;
         float3 p = float3(0.0f, 0.0f, r0) + dir * (0.5f * (t0 + t1));

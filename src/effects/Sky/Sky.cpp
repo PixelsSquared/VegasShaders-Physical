@@ -311,14 +311,17 @@ Constants.SunsetColor.w = TheShaderManager->Shaders.Tonemapping->Enabled
 	float sunSet = std::clamp(powf(1.0f - sunHeight, 8.0f), 0.0f, 1.0f) * dayTime;
 	D3DXVECTOR3 sunColor = (1.0f + sunHeight) * sunDisk + sunsetC * (sunSet * Constants.SkyData.x);
 
-	// UNOFFICIAL physical sky ([Shaders.Sky.Physical]): its share fades in from just below the horizon to just above it,
-	// so the game's own twilight and night stay; outdoors only. Its brightness is matched to the weather's sky: the
+	// UNOFFICIAL physical sky ([Shaders.Sky.Physical]): its share is full down to a sun 4 degrees below the horizon and fades out by
+	// 10 degrees below (TEST 2026-11-04 belt of Venus; it was +-2.9 degrees round the horizon), so civil twilight is the air's own:
+	// the earth's shadow rising opposite the sun with the pink band of the belt of Venus above it (with ExactSunlight or
+	// MultipleScattering on; the closed form has no sharp shadow), and the game's own night after nautical twilight; outdoors only. Its brightness is matched to the weather's sky: the
 	// average luminance over the dome, both measured on the same samples as the projection below, which then projects
 	// the blend that SKY.pso shows, so the sky light on objects comes from the sky on screen.
 	{
 		D3DXVECTOR3 realSun(sunPos.x, sunPos.y, sunPos.z);
 		if (!(TheShaderManager->GameState.isExterior && TheShaderManager->GameState.dayLight > 0.5f)) realSun.z = -realSun.z;	// ShaderManager turns it upward
-		float share = std::clamp((realSun.z + 0.05f) / 0.1f, 0.0f, 1.0f);
+		const float shareEnd = -0.173648f, shareFull = -0.069756f;	// sin(-10 deg), sin(-4 deg)
+		float share = std::clamp((realSun.z - shareEnd) / (shareFull - shareEnd), 0.0f, 1.0f);
 		share = share * share * (3.0f - 2.0f * share);
 		if (!PhysicalSettings.Enabled || !TheShaderManager->GameState.isExterior) share = 0.0f;
 		Constants.PhysSky = D3DXVECTOR4(share, 1.0f, PhysicalSettings.WeatherTint, PhysicalSettings.Haze);

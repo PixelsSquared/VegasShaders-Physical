@@ -89,7 +89,7 @@ namespace PhysSky {
 			return o;
 		}
 
-		// SkyView.fx.hlsl AtmSkyX: 12 sqrt-spaced steps, the sun's depth from the table, optionally Psi_ms * sigma_s * T_view.
+		// SkyView.fx.hlsl AtmSkyX: 24 sqrt-spaced steps (TEST 2026-11-04 belt of Venus, was 12), the sun's depth from the table, optionally Psi_ms * sigma_s * T_view.
 		V3 Radiance(const V3& dir, const V3& sunDir, float camAlt, float hz, bool withMs) const {
 			const double r0 = Ground + camAlt, mu = dir.z;
 			double tMax = -r0 * mu + sqrt((std::max)(r0 * r0 * (mu * mu - 1.0) + Top * Top, 0.0));
@@ -99,8 +99,8 @@ namespace PhysSky {
 			const float phaseR = (float)(3.0 / (16.0 * Pi) * (1.0 + nu * nu));
 			const float phaseM = (float)(3.0 / (8.0 * Pi) * ((1.0 - g2) * (1.0 + nu * nu)) / ((2.0 + g2) * pow((std::max)(1.0 + g2 - 2.0 * MieG * nu, 1e-4), 1.5)));
 			V3 depth, sumR, sumM, sumMS;
-			for (int i = 0; i < 12; i++) {
-				const double s0 = i / 12.0, s1 = (i + 1) / 12.0, t0 = tMax * s0 * s0, t1 = tMax * s1 * s1, dt = t1 - t0;
+			for (int i = 0; i < 24; i++) {
+				const double s0 = i / 24.0, s1 = (i + 1) / 24.0, t0 = tMax * s0 * s0, t1 = tMax * s1 * s1, dt = t1 - t0;
 				const double px = dir.x * 0.5 * (t0 + t1), py = dir.y * 0.5 * (t0 + t1), pz = r0 + dir.z * 0.5 * (t0 + t1);
 				const double r = sqrt(px * px + py * py + pz * pz), alt = r - Ground;
 				const float dR = (float)exp(-alt / RayleighH), dM = (float)exp(-alt / MieH), dO = (float)Ozone01(alt);

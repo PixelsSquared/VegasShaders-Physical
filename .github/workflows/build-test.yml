@@ -1,0 +1,36 @@
+# TEST build (PixelsSquared fork): the DLL and the full Plugins/Shaders/Textures tree, as build.bat makes it, uploaded as an artifact.
+name: Build test package
+on:
+  push:
+    branches: [belt-of-venus-test]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x86
+      - uses: nuget/setup-nuget@v2
+      - name: Restore NuGet packages
+        run: nuget restore TESReloaded.sln
+      - name: Build (v142, else v143)
+        shell: cmd
+        run: |
+          msbuild TESReloaded.sln -target:NewVegasReloaded /p:Configuration=Release /p:Platform=x86 -m -v:minimal
+          if errorlevel 1 (
+            echo v142 build failed, retrying with the v143 toolset
+            msbuild TESReloaded.sln -target:NewVegasReloaded /p:Configuration=Release /p:Platform=x86 /p:PlatformToolset=v143 -m -v:minimal
+          )
+      - name: Package (build.bat's copy steps)
+        shell: cmd
+        run: |
+          if not exist NewVegasReloaded\Release\VegasShaders.dll exit /b 1
+          echo.| call build.bat NewVegasReloaded
+          if not exist build\NewVegasReloaded\nvse\Plugins\VegasShaders.dll exit /b 1
+          exit /b 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VegasShaders-1.0.3-belt-of-venus-test
+          path: build/NewVegasReloaded/
