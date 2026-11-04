@@ -4,6 +4,8 @@ on:
   push:
     branches: [belt-of-venus-test]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: windows-2022
@@ -36,3 +38,18 @@ jobs:
         with:
           name: VegasShaders-1.0.3-belt-of-venus-test
           path: build/NewVegasReloaded/
+      - name: Zip (without VegasShaders.toml, so installing keeps your settings)
+        shell: pwsh
+        run: |
+          Remove-Item build/NewVegasReloaded/nvse/Plugins/VegasShaders.toml -ErrorAction SilentlyContinue
+          Compress-Archive -Path build/NewVegasReloaded/* -DestinationPath VegasShaders-1.0.3-belt-of-venus-test.zip
+          Get-ChildItem build/NewVegasReloaded/nvse/Plugins | Format-Table Name, Length
+      - name: Publish as a pre-release on this fork
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="belt-of-venus-test-${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" VegasShaders-1.0.3-belt-of-venus-test.zip --prerelease --target "$GITHUB_SHA" \
+            --title "1.0.3 belt of Venus TEST (build ${GITHUB_RUN_NUMBER})" \
+            --notes "Vegas Shaders 1.0.3 with the physical sky kept through civil twilight (full to a sun 4 degrees below the horizon, fading out by 10 degrees below) and 24 view-ray steps. TEST build, replaces the stock behaviour. Built by GitHub Actions with the v143 toolset. VegasShaders.toml is not included, so your settings stay."
